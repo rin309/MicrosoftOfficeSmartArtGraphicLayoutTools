@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<layoutDefHdr xmlns="http://schemas.openxmlformats.org/drawingml/2006/3/diagram" 
-  uniqueId="urn:contoso.com/office/officeart/2005/8/layout/Example">
+<layoutDefHdr xmlns="http://schemas.openxmlformats.org/drawingml/2006/diagram"
+	uniqueId="urn:contoso.com/office/officeart/2005/8/layout/MSDNMagExample">
   <title val="タイトル" />
   <desc val="説明" />
   <catLst>
@@ -14,5 +14,6 @@
     <cat type="picture" pri="1000" /><!-- 図 -->
     <cat type="pictureconvert" pri="1000" /><!-- 図? -->
     <cat type="convert" pri="1000" /><!--  -->
+		<cat type="other" pri="10000" /><!-- その他 -->
   </catLst>
 </layoutDefHdr>
