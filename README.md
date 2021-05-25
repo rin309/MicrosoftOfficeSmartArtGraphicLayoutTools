@@ -1,4 +1,4 @@
-# MicrosoftOfficeSmartArtGraphicLayoutTools
+# SmartArt Graphic Layout Tools
 
 ## How to use
 1. Load "MainScript.ps1".
@@ -7,13 +7,17 @@
 ```
 2. Mount *.glox file or create from template.
 ```
+# Open
 Mount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox"
+# Create
+Mount-OpenXmlFile -XmlPath "not-exists.glox"
 ```
 3. Edit Temp\*.glox\diagrams\layout1.xml and Temp\*.glox\diagrams\layoutHeader1.xml.
 
 4. Mount *.glox file or create from template.
 ```
 DisMount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox" -CopyToTemplatesDirectory
+# Look "Export" directory
 ```
 5. Debug SmartArt by Word.
 ```
