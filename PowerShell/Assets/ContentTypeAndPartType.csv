@@ -1,0 +1,9 @@
+﻿PartClassName,KnownPackageInfoName,PartContentType,TargetPath,TargetFileExtension,RelationshipType
+DiagramPart,Igx,application/vnd.openxmlformats-officedocument.drawingml.diagram+xml,diagrams/graphic?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagram
+DiagramDataPart,IgxData,application/vnd.openxmlformats-officedocument.drawingml.diagramData+xml,diagrams/data?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramData
+DiagramLayoutDefinitionHeader,IgxDiagramDefHeader,application/vnd.openxmlformats-officedocument.drawingml.diagramLayoutHeader+xml,diagrams/layoutHeader?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramLayoutHeader
+DiagramLayoutDefinitionPart,IgxDiagramDef,application/vnd.openxmlformats-officedocument.drawingml.diagramLayout+xml,diagrams/layout?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramLayout
+DiagramStyleHeader,IgxStyleHeader,application/vnd.openxmlformats-officedocument.drawingml.diagramStyleHeader+xml,diagrams/quickStyleHeader?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramQuickStyleHeader
+DiagramStylePart,IgxStyle,application/vnd.openxmlformats-officedocument.drawingml.diagramStyle+xml,diagrams/quickStyle?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramQuickStyle
+DiagramColorsHeader,IgxColorTransHeader,application/vnd.openxmlformats-officedocument.drawingml.diagramColorsHeader+xml,diagrams/colorsHeader?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramColorsHeader
+DiagramColorsPart,IgxColorTrans,application/vnd.openxmlformats-officedocument.drawingml.diagramColors+xml,diagrams/colors?,.xml,http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramColors

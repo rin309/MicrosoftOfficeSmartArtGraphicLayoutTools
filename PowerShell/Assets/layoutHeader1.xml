@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layoutDefHdr xmlns="http://schemas.openxmlformats.org/drawingml/2006/3/diagram" 
+  uniqueId="urn:contoso.com/office/officeart/2005/8/layout/Example">
+  <title val="タイトル" />
+  <desc val="説明" />
+  <catLst>
+    <cat type="list" pri="1000" /><!-- リスト -->
+    <cat type="process" pri="1000" /><!-- 手順 -->
+    <cat type="cycle" pri="1000" /><!-- 循環 -->
+    <cat type="hierarchy" pri="1000" /><!-- 階層構造 -->
+    <cat type="relationship" pri="1000" /><!-- 集合関係 -->
+    <cat type="matrix" pri="1000" /><!-- マトリックス -->
+    <cat type="pyramid" pri="1000" /><!-- ピラミッド -->
+    <cat type="picture" pri="1000" /><!-- 図 -->
+    <cat type="pictureconvert" pri="1000" /><!-- 図? -->
+    <cat type="convert" pri="1000" /><!--  -->
+  </catLst>
+</layoutDefHdr>
