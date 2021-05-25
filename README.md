@@ -20,9 +20,8 @@ DisMount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox" -CopyTo
 # Look "Export" directory
 ```
 5. Debug SmartArt by Word.
-```
-winword
-```
+![SmartArt グラフィックの選択](https://user-images.githubusercontent.com/760251/119538371-03365a00-bdc6-11eb-9e27-2baecbf4faf9.png)
+
 6. Clear temporary directory.
 ```
 Clear-OpenXmlCorruptMountPoint -GloxFileName "MSDNExample.glox"
