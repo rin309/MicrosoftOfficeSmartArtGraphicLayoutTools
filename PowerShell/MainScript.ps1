@@ -1,17 +1,15 @@
 ﻿# Microsoft Office SmartArt Graphic Layout (*.glox) Tool
-# Version 0.1.20210525
+# Version 0.1.20210526
 # 
 # 
 
 Add-Type -AssemblyName WindowsBase
 
 Set-Location (Split-Path $MyInvocation.MyCommand.Path -Parent)
-$TemporaryDirectoryRoot = (Join-Path (Get-Location) "Temp")
-$ExportDirectoryRoot = (Join-Path (Get-Location) "Export")
+$Global:TemporaryDirectoryRoot = (Join-Path (Get-Location) "Temp")
+$Global:ExportDirectoryRoot = (Join-Path (Get-Location) "Export")
 
-$ContentTypeAndPartType = Import-Csv .\Assets\ContentTypeAndPartType.csv
-
-Function Mount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly){
+Function Global:Mount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly){
     $TemporaryDirectory = (Join-Path $TemporaryDirectoryRoot (Split-Path $XmlPath -Leaf))
     Remove-Item $TemporaryDirectory -Force -ErrorAction SilentlyContinue | Out-Null
     If ($DiscardOnly){
@@ -19,30 +17,38 @@ Function Mount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly){
         Return
     }
     
-    [System.IO.Packaging.Package]$CurrentPackage = [System.IO.Packaging.Package]::Open($XmlPath,[System.IO.FileMode]::Open,[System.IO.FileAccess]::Read)
-    $CurrentPackage.GetParts() | Where-Object Name -ne ".rels" | ForEach-Object{
-        New-Item -Path (Join-Path $TemporaryDirectory (Split-Path $_.Uri -Parent)) -ItemType Directory -Force | Out-Null
-        $ExportedFilePath = (Join-Path $TemporaryDirectory $_.Uri)
-        Write-Host $ExportedFilePath
-        [System.IO.Stream]$StreamReader = $_.GetStream()
-        [System.IO.FileStream]$FileWriter = [System.IO.File]::OpenWrite($ExportedFilePath)
-        $StreamReader.CopyTo($FileWriter)
+    If (Test-Path $XmlPath){
+        [System.IO.Packaging.Package]$CurrentPackage = [System.IO.Packaging.Package]::Open($XmlPath,[System.IO.FileMode]::Open,[System.IO.FileAccess]::Read)
+        $CurrentPackage.GetParts() | Where-Object Name -ne ".rels" | ForEach-Object{
+            New-Item -Path (Join-Path $TemporaryDirectory (Split-Path $_.Uri -Parent)) -ItemType Directory -Force | Out-Null
+            $ExportedFilePath = (Join-Path $TemporaryDirectory $_.Uri)
+            [System.IO.Stream]$StreamReader = $_.GetStream()
+            [System.IO.FileStream]$FileWriter = [System.IO.File]::OpenWrite($ExportedFilePath)
+            $StreamReader.CopyTo($FileWriter)
 
-        $StreamReader.Dispose()
-        $FileWriter.Dispose()
+            $StreamReader.Dispose()
+            $FileWriter.Dispose()
+        }
+        $CurrentPackage.Close()
     }
-    $CurrentPackage.Close()
+    Else{
+        Write-Verbose "Created new diagrams items."
+        New-Item -Path (Join-Path $TemporaryDirectory "diagrams") -ItemType Directory -Force | Out-Null
+        Copy-Item .\Assets\layout1.xml (Join-Path $TemporaryDirectory "diagrams\layout1.xml") -Force
+        Copy-Item .\Assets\layoutHeader1.xml (Join-Path $TemporaryDirectory "diagrams\layoutHeader1.xml") -Force
+    }
 }
 
-Function DisMount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly, [Switch]$CopyToTemplatesDirectory){
+Function Global:DisMount-OpenXmlFile($XmlPath, [Switch]$CopyToTemplatesDirectory){
+    $ContentTypeAndPartType = Import-Csv .\Assets\ContentTypeAndPartType.csv
     $TemporaryDirectory = (Join-Path $TemporaryDirectoryRoot (Split-Path $XmlPath -Leaf))
-    $GloxPath = (Join-Path $ExportDirectoryRoot (Split-Path $XmlPath -Leaf))
-    Remove-Item $GloxPath -Force -ErrorAction SilentlyContinue | Out-Null
-    If ($DiscardOnly){
-        Write-Verbose "DiscardOnly"
+    If (!(Test-Path $TemporaryDirectory)){
         Return
     }
+    $GloxPath = (Join-Path $ExportDirectoryRoot (Split-Path $XmlPath -Leaf))
+    Remove-Item $GloxPath -Force -ErrorAction SilentlyContinue | Out-Null
 
+    New-Item -Path $ExportDirectoryRoot -ItemType Directory -Force | Out-Null
     [System.IO.Packaging.Package]$CurrentPackage = [System.IO.Packaging.Package]::Open($GloxPath,[System.IO.FileMode]::Create,[System.IO.FileAccess]::ReadWrite)
 
     Get-ChildItem $TemporaryDirectory -Recurse -File | Where-Object Name -ne ".rels" | Sort-Object -Descending | ForEach-Object{
@@ -52,6 +58,7 @@ Function DisMount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly, [Switch]$CopyToTem
         $FileNameWithoutExtension = ([IO.Path]::GetFileNameWithoutExtension($Path))
         $Path = "/$Parent/$FileName"
         $PathWithoutExtension = "$Parent/$FileNameWithoutExtension"
+        $PathWithoutExtension
         
         $CurrentType = $ContentTypeAndPartType | Where-Object {$PathWithoutExtension -Match $_.TargetPath.Replace("?","\d{1}")}
         $Part = $CurrentPackage.CreatePart($Path, $CurrentType.PartContentType, [System.IO.Packaging.CompressionOption]::Maximum)
@@ -72,3 +79,10 @@ Function DisMount-OpenXmlFile($XmlPath, [Switch]$DiscardOnly, [Switch]$CopyToTem
     }
 }
 
+
+Function Global:Clear-OpenXmlCorruptMountPoint($GloxFileName){
+    $TemporaryDirectory = (Join-Path $TemporaryDirectoryRoot (Split-Path $GloxFileName -Leaf))
+    If (Test-Path $TemporaryDirectory){
+        Remove-Item $TemporaryDirectory -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+}
