@@ -5,18 +5,23 @@
 ```
 & MainScript.ps1
 ```
-2. Mount *.glox file or create from template.
+2. Open *.glox file / Create from template.
 ```
 # Open
-Mount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox"
+Mount-OpenXmlFile -Path test.glox -XmlPath "C:\Users\Owner\Documents\SmartArt Graphics\test.glox"
 # Create
-Mount-OpenXmlFile -XmlPath "not-exists.glox"
+New-TemporaryOpenXmlFile -Path "not-exists.glox" -OpenXmlType Diagrams
 ```
-3. Edit Temp\*.glox\diagrams\layout1.xml and Temp\*.glox\diagrams\layoutHeader1.xml.
+3. Edit Temp\*.glox\diagrams\layoutHeader1.xml
+```
+Rmove-OpenXmlFileValue -Path test.glox -OpenXmlType Diagrams -Category
+Set-OpenXmlFileValue -Path test.glox -OpenXmlType Diagrams -Title "テスト" -Description "これはテストです" -Category List -Priority 1000 -UniqueId "urn:contoso.com/office/officeart/2021/6/layout/test"
+```
+4. Edit Temp\*.glox\diagrams\layout1.xml by your text editor.
 
-4. Mount *.glox file or create from template.
+5. Save *.glox file.
 ```
-DisMount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox" -CopyToTemplatesDirectory
+Save-OpenXmlFile -Path test.glox -XmlPath test.glox
 # Look "Export" directory
 ```
 5. Debug SmartArt by Word.
@@ -24,7 +29,7 @@ DisMount-OpenXmlFile -XmlPath "C:\Users\User\Downloads\MSDNExample.glox" -CopyTo
 
 6. Clear temporary directory.
 ```
-Clear-OpenXmlCorruptMountPoint -GloxFileName "MSDNExample.glox"
+Clear-OpenXmlCorruptMountPoint -Path test.glox
 ```
 
 # Memo
