@@ -71,7 +71,7 @@ Function Global:New-TemporaryOpenXmlFile([Parameter(Mandatory)]$Path, [Parameter
     指定された Path が存在する場合でも続行します
 
     .EXAMPLE
-    Mount-OpenXmlFile -Path test.glox -XmlPath "C:\Users\Owner\Documents\SmartArt Graphics\test.glox
+    Mount-OpenXmlFile -Path test.glox -XmlPath "C:\Users\Owner\Documents\SmartArt Graphics\test.glox"
 
 #>
 Function Global:Mount-OpenXmlFile([Parameter(Mandatory)]$Path, [Parameter(Mandatory)]$XmlPath, [Switch]$Force){
@@ -229,10 +229,10 @@ Function Global:Set-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Man
     OpenXmlType で Diagrams を指定したとき: SmartArt グラフィックの選択画面に表示するカテゴリーをすべて削除
 
     .EXAMPLE
-    Rmove-OpenXmlFileValue -Path test.glox -OpenXmlType Diagrams -Category
+    Remove-OpenXmlFileValue -Path test.glox -OpenXmlType Diagrams -Category
 
 #>
-Function Global:Rmove-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Mandatory)][OpenXmlType]$OpenXmlType, [Switch]$Category){
+Function Global:Remove-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Mandatory)][OpenXmlType]$OpenXmlType, [Switch]$Category){
     Enum OpenXmlType {
         Diagrams
     }
