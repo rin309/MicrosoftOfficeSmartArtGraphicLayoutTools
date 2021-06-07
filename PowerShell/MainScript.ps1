@@ -1,5 +1,5 @@
 ﻿# Microsoft Office SmartArt Graphic Layout (*.glox) Tool
-# Version 0.2.20210602
+# Version 0.3.20210608
 # 
 # 
 
@@ -105,6 +105,96 @@ Function Global:Mount-OpenXmlFile([Parameter(Mandatory)]$Path, [Parameter(Mandat
 
 <#
     .SYNOPSIS
+    展開済みの OpenXML 形式のファイルを作成するための一時ファイルに値を追加します
+
+    .PARAMETER Path
+    フォルダー名を相対パスか絶対パスを指定します
+    相対パスで指定された場合、このスクリプトがあるフォルダーの Temp フォルダー内に保存されます
+
+    .PARAMETER OpenXmlType
+    OpenXML 形式の種類を選択します
+
+    .PARAMETER Category
+    Priority と共に使用します
+    OpenXmlType で Diagrams を指定したとき: SmartArt グラフィックの選択画面に表示するカテゴリーの種類
+
+    .PARAMETER Priority
+    Category と共に使用します
+    OpenXmlType で Diagrams を指定したとき: SmartArt グラフィックの選択画面に表示する優先順位の値
+
+    .EXAMPLE
+    Add-OpenXmlFileValue -Path test.glox -OpenXmlType Diagrams -Category List -Priority 1000
+
+#>
+Function Global:Add-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Mandatory)][OpenXmlType]$OpenXmlType, [IgxCategory]$Category, [Int]$Priority){
+    Enum OpenXmlType {
+        Diagrams
+    }
+    Enum IgxCategory{
+        List
+        Process
+        Cycle
+        Hierarchy
+        Relationship
+        Matrix
+        Pyramid
+        Picture
+        Other
+    }
+
+    $Path = Get-OpenXmlTemporaryDirectory -Path $Path
+
+    # 読み込み
+    $Layout1Path = (Join-Path $Path "$($OpenXmlType.ToString().ToLower())\layout1.xml")
+    $LayoutHeader1Path = (Join-Path $Path "$($OpenXmlType.ToString().ToLower())\layoutHeader1.xml")
+
+    If (!(Test-Path $Layout1Path -PathType Leaf)){
+        Write-Error "ファイルが見つかりません: $Layout1Path"
+    }
+    If (!(Test-Path $LayoutHeader1Path -PathType Leaf)){
+        Write-Error "ファイルが見つかりません: $LayoutHeader1Path"
+    }
+    
+    $layoutDefHdrXPath = "//*[local-name()='layoutDefHdr']"
+    If ($LayoutHeader1XmlDocument.SelectNodes($layoutDefHdrXPath).Count -eq 0){
+        Write-Error "ファイル内にXML要素 layoutDefHdr が見つかりません: $LayoutHeader1Path"
+    }
+    
+    $Layout1IsChanged = $False
+    $Layout1XmlDocument = [XML](Get-Content $Layout1Path)
+    $LayoutHeader1IsChanged = $False
+    $LayoutHeader1XmlDocument = [XML](Get-Content $LayoutHeader1Path)
+
+    # 追加
+    If (($Category -ne $null) -or ($Priority -ne 0)){
+        $catLstXPath = "//*[local-name()='layoutDefHdr']/*[local-name()='catLst']"
+        If ($LayoutHeader1XmlDocument.SelectNodes($catLstXPath).Count -eq 0){
+            $catLstXml = $LayoutHeader1XmlDocument.CreateElement("catLst", $LayoutHeader1XmlDocument.DocumentElement.NamespaceURI)
+            $LayoutHeader1XmlDocument.layoutDefHdr.AppendChild($catLstXml) | Out-Null
+        }
+        ElseIf ($LayoutHeader1XmlDocument.SelectNodes($catLstXPath).Count -ne 1){
+            Write-Warning "このファイルには、複数の catLst が定義されていますので、'Remove-OpenXmlFileValue -Path FILENAME.glox -OpenXmlType Diagrams -Category' の使用を検討してください : $Path"
+        }
+        $catLstXml = $LayoutHeader1XmlDocument.SelectNodes($catLstXPath)[0]
+    
+        $CatXml = $LayoutHeader1XmlDocument.CreateElement("cat", $LayoutHeader1XmlDocument.DocumentElement.NamespaceURI)
+        $CatXml.SetAttribute("type", $Category.ToString().ToLower())
+        $CatXml.SetAttribute("pri", $Priority)
+        $catLstXml.AppendChild($CatXml) | Out-Null
+        
+        $LayoutHeader1IsChanged = $True
+    }
+    
+    # 保存
+    If ($Layout1IsChanged){
+        $Layout1XmlDocument.Save($Layout1Path)
+    }
+    If ($LayoutHeader1IsChanged){
+        $LayoutHeader1XmlDocument.Save($LayoutHeader1Path)
+    }
+}
+<#
+    .SYNOPSIS
     展開済みの OpenXML 形式のファイルを作成するための一時ファイルに値を設定します
 
     .PARAMETER Path
@@ -121,7 +211,7 @@ Function Global:Mount-OpenXmlFile([Parameter(Mandatory)]$Path, [Parameter(Mandat
     OpenXmlType で Diagrams を指定したとき: SmartArt グラフィックの選択画面に表示する説明
 
     .PARAMETER UniqueId
-    既存の項目などと重複しないようにしてください
+    既存のSmartArt グラフィックの値と重複しないようにしてください
     OpenXmlType で Diagrams を指定したとき: 内部で使用される一意の値
 
     .PARAMETER Category
@@ -165,6 +255,11 @@ Function Global:Set-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Man
         Write-Error "ファイルが見つかりません: $LayoutHeader1Path"
     }
     
+    $layoutDefHdrXPath = "//*[local-name()='layoutDefHdr']"
+    If ($LayoutHeader1XmlDocument.SelectNodes($layoutDefHdrXPath).Count -eq 0){
+        Write-Error "ファイル内にXML要素 layoutDefHdr が見つかりません: $LayoutHeader1Path"
+    }
+    
     $Layout1IsChanged = $False
     $Layout1XmlDocument = [XML](Get-Content $Layout1Path)
     $LayoutHeader1IsChanged = $False
@@ -180,6 +275,7 @@ Function Global:Set-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Man
         $LayoutHeader1IsChanged = $True
     }
     If ($UniqueId -ne $null){
+
         $Layout1XmlDocument.layoutDef.uniqueId = $UniqueId
         $LayoutHeader1XmlDocument.layoutDefHdr.uniqueId = $UniqueId
         $Layout1IsChanged = $True
@@ -187,13 +283,12 @@ Function Global:Set-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Man
     }
     If (($Category -ne $null) -or ($Priority -ne 0)){
         $catLstXPath = "//*[local-name()='layoutDefHdr']/*[local-name()='catLst']"
-        If ($LayoutHeader1XmlDocument.SelectNodes($catLstXPath).Count -eq 0){
-            $catLstXml = $LayoutHeader1XmlDocument.CreateElement("catLst", $LayoutHeader1XmlDocument.DocumentElement.NamespaceURI)
-            $LayoutHeader1XmlDocument.layoutDefHdr.AppendChild($catLstXml) | Out-Null
+        If ($LayoutHeader1XmlDocument.SelectNodes($catLstXPath).Count -ne 0){
+            $LayoutHeader1XmlDocument.layoutDefHdr.catLst | ForEach-Object {$LayoutHeader1XmlDocument.layoutDefHdr.RemoveChild($_)} | Out-Null
         }
-        ElseIf ($LayoutHeader1XmlDocument.SelectNodes($catLstXPath).Count -ne 1){
-            Write-Warning "このファイルには、複数の catLst が定義されています: $Path"
-        }
+
+        $catLstXml = $LayoutHeader1XmlDocument.CreateElement("catLst", $LayoutHeader1XmlDocument.DocumentElement.NamespaceURI)
+        $LayoutHeader1XmlDocument.layoutDefHdr.AppendChild($catLstXml) | Out-Null
         $catLstXml = $LayoutHeader1XmlDocument.SelectNodes($catLstXPath)[0]
     
         $CatXml = $LayoutHeader1XmlDocument.CreateElement("cat", $LayoutHeader1XmlDocument.DocumentElement.NamespaceURI)
@@ -211,7 +306,6 @@ Function Global:Set-OpenXmlFileValue([Parameter(Mandatory)]$Path, [Parameter(Man
     If ($LayoutHeader1IsChanged){
         $LayoutHeader1XmlDocument.Save($LayoutHeader1Path)
     }
-    
 }
 
 <#
@@ -328,7 +422,7 @@ Function Global:Save-OpenXmlFile([Parameter(Mandatory)]$Path, [Parameter(Mandato
         Start-SmartEditorPicker($WordApplication)
 
         Write-Host "Wordでの作業が終了しましたら何かキーを押してください"
-        Read-Host
+        Read-Host | Out-Null
         Close-WordWindow($WordApplication)
 
     }
@@ -370,17 +464,28 @@ Function Global:Start-SmartEditorPicker($WordApplication){
     $WordApplication.Caption = $WordApplicationCaption
     $WordApplication.Application.Visible = $True
     $WordDocument = $WordApplication.Documents.Add()
+    
+    #$WordApplication.ScreenRefresh | Out-Null
+    #Start-Sleep -Milliseconds 100
+
+    #$WordDocument.ActiveWindow.View.Type = 6
+    #$WordDocument.Background.Fill.Visible = $True
+    #$WordDocument.Background.Fill.UserPicture("D:\Owner\Documents\市松模様.png")
+
+    #$WordApplication.ScreenRefresh | Out-Null
+    #Start-Sleep -Milliseconds 100
+
     $WordRange = $WordDocument.Range(0, 0)
-    $WordRange.Text = "SmartArtグラフィックの選択画面が表示されなかった場合は、""挿入"" > ""SmartArtグラフィックの挿入"" の順に押してください。`n`nこのWord文書は、PowerShellウィンドウで何かキーを押すと保存なしで終了されます。"
-        
+    $WordRange.Text = "`n`nSmartArtグラフィックの選択画面が表示されなかった場合は、""挿入"" > ""SmartArtグラフィックの挿入"" の順に押してください。`n`nこのWord文書は、PowerShellウィンドウで何かキーを押すと保存なしで終了されます。"
+
+    $WordApplication.Activate()
+    $WordDocument.Activate()
     $WscriptShell = New-Object -ComObject Wscript.Shell
     If ($WscriptShell.AppActivate($WordApplication.Caption)){
-        $WscriptShell.SendKeys("%N")
-        Start-Sleep 1
-        $WscriptShell.SendKeys("{ESC}")
-        Start-Sleep 1
-        $WscriptShell.SendKeys("%N")
-        Start-Sleep 1
+        $WscriptShell.SendKeys("%")
+        Start-Sleep -Milliseconds 500
+        $WscriptShell.SendKeys("N")
+        Start-Sleep -Milliseconds 500
         $WscriptShell.SendKeys("M")
     }
     Else{
